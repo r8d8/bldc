@@ -75,6 +75,7 @@ bool app_nunchuk_get_is_rev(void);
 float app_nunchuk_get_update_age(void);
 void app_nunchuk_update_output(chuck_data *data);
 
+
 void app_pas_start(bool is_primary_output);
 void app_pas_stop(void);
 bool app_pas_is_running(void);
@@ -84,8 +85,11 @@ float app_pas_get_pedal_rpm(void);
 void app_pas_set_current_sub_scaling(float current_sub_scaling);
 
 // Custom apps
-void app_custom_start(void);
-void app_custom_stop(void);
-void app_custom_configure(app_configuration *conf);
+void app_power_controller_start(void);
+void app_power_controller_stop(void);
+void app_power_controller_configure(app_configuration *conf);
+float app_power_controller_get_voltage(void);
+float app_power_controller_get_regen_current(void);
+bool app_power_controller_is_regen_active(void);
 
 #endif /* APP_H_ */

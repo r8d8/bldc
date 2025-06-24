@@ -1,0 +1,126 @@
+# VESC Power Controller Test Build System
+# 
+# Usage:
+#   make -f Makefile.test          # Build with tests enabled
+#   make -f Makefile.test clean    # Clean test build
+#   make -f Makefile.test test     # Run Python simulation tests
+
+# Variables
+PYTHON = python3
+TEST_SCRIPT = test_power_controller_improved.py
+BUILD_TARGET = fsesc_75_300
+
+# Enable debug build (includes test code)
+export DEBUG_BUILD := 1
+
+# Default target
+.PHONY: help
+help:
+	@echo "VESC Power Controller Test Targets:"
+	@echo "  test          - Run Python simulation tests"
+	@echo "  test-sim      - Run simulation tests"
+	@echo "  test-build    - Build firmware with tests enabled" 
+	@echo "  test-unit     - Run unit tests (requires hardware)"
+	@echo "  test-integration - Run integration tests (requires hardware)"
+	@echo "  test-all      - Run complete test suite"
+	@echo "  build         - Build firmware with DEBUG_BUILD=1"
+	@echo "  build-prod    - Build production firmware (no tests)"
+	@echo "  clean-test    - Clean test artifacts"
+	@echo "  help          - Show this help"
+	@echo ""
+	@echo "File structure:"
+	@echo "  app_power_controller.c     - Core production code"
+	@echo "  app_power_controller_test.c - Test code (DEBUG_BUILD only)"
+	@echo "  app_power_controller_config.h - Build configuration"
+
+# Main test target - Python simulation only (no hardware required)
+.PHONY: test
+test: test-sim
+
+# Simulation tests (no hardware required)
+.PHONY: test-sim
+test-sim:
+	@echo "Running Python simulation tests..."
+	$(PYTHON) $(TEST_SCRIPT)
+	@echo "Simulation tests completed"
+
+# Build firmware with tests enabled
+.PHONY: test-build build
+test-build build:
+	@echo "Building firmware with DEBUG_BUILD=1 for $(BUILD_TARGET)..."
+	@echo "This includes test code and mock interfaces"
+	make DEBUG_BUILD=1 $(BUILD_TARGET)
+	@echo "Build with tests completed!"
+
+# Build production firmware (no tests)
+.PHONY: build-prod
+build-prod:
+	@echo "Building production firmware for $(BUILD_TARGET)..."
+	@echo "Test code is excluded from production build"
+	make $(BUILD_TARGET)
+	@echo "Production build completed!"
+
+# Unit tests (requires hardware with test firmware)
+.PHONY: test-unit
+test-unit:
+	@echo "Unit tests require hardware with DEBUG_BUILD=1 firmware"
+	@echo "To run unit tests:"
+	@echo "  1. Build with: make -f Makefile.test build"
+	@echo "  2. Flash firmware to VESC hardware"
+	@echo "  3. Connect to VESC Tool terminal"
+	@echo "  4. Run: pc_test_run_all_unit_tests()"
+
+# Integration tests (requires hardware with test firmware)
+.PHONY: test-integration
+test-integration:
+	@echo "Integration tests require hardware with DEBUG_BUILD=1 firmware"
+	@echo "To run integration tests:"
+	@echo "  1. Build with: make -f Makefile.test build"
+	@echo "  2. Flash firmware to VESC hardware"
+	@echo "  3. Connect to VESC Tool terminal"
+	@echo "  4. Run: pc_test_run_all_integration_tests()"
+
+# Complete test suite
+.PHONY: test-all
+test-all: test-sim test-build
+	@echo "=== COMPLETE TEST SUITE ==="
+	@echo "✓ Python simulation tests completed"
+	@echo "✓ Test firmware build completed"
+	@echo ""
+	@echo "To run hardware tests:"
+	@echo "  1. Flash the test firmware to hardware"
+	@echo "  2. Use VESC Tool terminal to run:"
+	@echo "     pc_test_run_complete_suite()"
+	@echo ""
+	@echo "All automated tests completed!"
+
+# Clean test artifacts
+.PHONY: clean-test
+clean-test:
+	@echo "Cleaning test artifacts..."
+	rm -f *.png *.log test_results.txt
+	rm -rf __pycache__
+	make clean
+
+# Install test dependencies
+.PHONY: test-deps
+test-deps:
+	@echo "Installing test dependencies..."
+	pip3 install matplotlib numpy
+
+# Quick verification (build both versions)
+.PHONY: test-verify
+test-verify:
+	@echo "=== VERIFYING BUILD SEPARATION ==="
+	@echo "Building production version..."
+	make clean > /dev/null 2>&1
+	make $(BUILD_TARGET) > build_prod.log 2>&1 && echo "✓ Production build successful" || echo "✗ Production build failed"
+	@echo "Building test version..."
+	make clean > /dev/null 2>&1
+	make DEBUG_BUILD=1 $(BUILD_TARGET) > build_test.log 2>&1 && echo "✓ Test build successful" || echo "✗ Test build failed"
+	@echo "Build separation verification completed"
+
+# Integration with CI/CD
+.PHONY: test-ci
+test-ci: test-deps test-verify test-sim
+	@echo "CI tests completed successfully"

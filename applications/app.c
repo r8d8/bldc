@@ -67,7 +67,7 @@ void app_set_configuration(app_configuration *conf) {
 		app_pas_stop();
 
 #ifdef APP_CUSTOM_TO_USE
-		app_custom_stop();
+		app_power_controller_stop();
 #endif
 	}
 
@@ -140,7 +140,7 @@ void app_set_configuration(app_configuration *conf) {
 		case APP_CUSTOM:
 #ifdef APP_CUSTOM_TO_USE
 			hw_stop_i2c();
-			app_custom_start();
+			app_power_controller_start();
 #endif
 			break;
 
@@ -157,7 +157,7 @@ void app_set_configuration(app_configuration *conf) {
 	app_nunchuk_configure(&appconf.app_chuk_conf);
 
 #ifdef APP_CUSTOM_TO_USE
-	app_custom_configure(&appconf);
+	app_power_controller_configure(&appconf);
 #endif
 
 	rfhelp_update_conf(&appconf.app_nrf_conf);
